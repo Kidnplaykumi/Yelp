@@ -8,22 +8,15 @@
 
 import UIKit
 
+
+
 class BusinessesViewController: UIViewController, UITableViewDataSource,  UITableViewDelegate, UISearchResultsUpdating {
-    
     func updateSearchResults(for searchController: UISearchController) {
-        if let searchText = searchController.searchBar.text {
-            
-            filteredBusinesses = searchText.isEmpty ? businesses : businesses.filter({ (businessData: Business) -> Bool in
-                return businessData.name?.range(of: searchText, options: .caseInsensitive, range: nil, locale: nil) != nil;
-                
-            })
-            businesses.reloadData();
-            }
+        
     }
     
-    
     var businesses: [Business]!
-    var searchController: UISearchController
+    var searchController: UISearchController!
     
     @IBOutlet weak var tableView: UITableView!
     
@@ -35,7 +28,22 @@ class BusinessesViewController: UIViewController, UITableViewDataSource,  UITabl
         searchController.searchResultsUpdater = self;
         searchController.dimsBackgroundDuringPresentation = false;
         searchController.searchBar.sizeToFit()
-        navigationItem.titleView = searchController.searchBar;
+        
+        // The code for search bar configuration
+        if #available(iOS 11.0, *) {
+            // For iOS 11 and later, place the search bar in the navigation bar
+            navigationController?.navigationBar.prefersLargeTitles = true
+            navigationItem.searchController = searchController
+            
+            // We want the search bar visible all the time.
+            navigationItem.hidesSearchBarWhenScrolling = false
+        } else {
+            // For iOS 10 and earlier
+            navigationItem.titleView = searchController.searchBar
+        }
+        
+        
+        // We want the search bar visible all the time.
         searchController.hidesNavigationBarDuringPresentation = false;
         definesPresentationContext = true
         
@@ -43,8 +51,6 @@ class BusinessesViewController: UIViewController, UITableViewDataSource,  UITabl
         tableView.dataSource = self
         tableView.rowHeight = UITableViewAutomaticDimension
         tableView.estimatedRowHeight = 120
-        
-        
         
         Business.searchWithTerm(term: "Thai", completion: { (businesses: [Business]?, error: Error?) -> Void in
             
