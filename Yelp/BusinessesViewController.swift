@@ -8,18 +8,43 @@
 
 import UIKit
 
-class BusinessesViewController: UIViewController, UITableViewDataSource,  UITableViewDelegate {
+class BusinessesViewController: UIViewController, UITableViewDataSource,  UITableViewDelegate, UISearchResultsUpdating {
+    
+    func updateSearchResults(for searchController: UISearchController) {
+        if let searchText = searchController.searchBar.text {
+            
+            filteredBusinesses = searchText.isEmpty ? businesses : businesses.filter({ (businessData: Business) -> Bool in
+                return businessData.name?.range(of: searchText, options: .caseInsensitive, range: nil, locale: nil) != nil;
+                
+            })
+            businesses.reloadData();
+            }
+    }
+    
     
     var businesses: [Business]!
+    var searchController: UISearchController
     
     @IBOutlet weak var tableView: UITableView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.tableView.rowHeight = 200
+        
+        
+        searchController = UISearchController(searchResultsController: nil);
+        searchController.searchResultsUpdater = self;
+        searchController.dimsBackgroundDuringPresentation = false;
+        searchController.searchBar.sizeToFit()
+        navigationItem.titleView = searchController.searchBar;
+        searchController.hidesNavigationBarDuringPresentation = false;
+        definesPresentationContext = true
         
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.estimatedRowHeight = 120
+        
+        
         
         Business.searchWithTerm(term: "Thai", completion: { (businesses: [Business]?, error: Error?) -> Void in
             
@@ -32,7 +57,7 @@ class BusinessesViewController: UIViewController, UITableViewDataSource,  UITabl
                 }
             }
             
-            }
+        }
         )
         
         /* Example of Yelp search with more search options specified
